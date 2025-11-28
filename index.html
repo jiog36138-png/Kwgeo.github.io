@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>광운대학교 맛집 추천 - KW EATS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* [Design System] Kwangwoon University Theme */
+        :root {
+            --primary-color: #8a1525;  /* 광운대 버건디 */
+            --primary-hover: #6b101d;
+            --bg-color: #f8f9fa;       /* 배경색: 아주 연한 회색 */
+            --card-bg: #ffffff;        /* 카드 배경: 흰색 */
+            --text-main: #333333;
+            --text-sub: #666666;
+            --border-color: #e0e0e0;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --radius: 12px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Noto Sans KR', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* 메인 컨테이너 */
+        .app-container {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 480px; /* 모바일 뷰 최적화 */
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        /* 상단 헤더 (이미지 스타일 반영) */
+        .header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* 콘텐츠 영역 */
+        .content {
+            padding: 2rem;
+        }
+        
+        .page-title {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+        }
+
+        /* 폼 그룹 공통 */
+        .form-group {
+            margin-bottom: 1.8rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+            color: var(--text-main);
+            font-size: 0.95rem;
+        }
+
+        /* 1. 배고픔 정도 (Slider) */
+        .range-container {
+            position: relative;
+            padding: 0 5px;
+        }
+        input[type=range] {
+            width: 100%;
+            height: 6px;
+            background: #ddd;
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .hunger-value {
+            text-align: right;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            margin-top: 5px;
+        }
+
+        /* 2, 3, 5. 선택 칩 (Chips UI) */
+        .chip-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .chip-input {
+            display: none;
+        }
+
+        .chip-label {
+            padding: 8px 16px;
+            background-color: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        /* 선택되었을 때 스타일 */
+        .chip-input:checked + .chip-label {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(138, 21, 37, 0.3);
+        }
+
+        .chip-label:hover {
+            border-color: var(--primary-color);
+        }
+
+        /* 4. 가격대 (Input) */
+        .input-group {
+            position: relative;
+        }
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Noto Sans KR', sans-serif;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .input-field:focus {
+            border-color: var(--primary-color);
+        }
+        .unit {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-sub);
+            font-size: 0.9rem;
+        }
+
+        /* 버튼 */
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 1rem;
+        }
+        .btn-submit:hover {
+            background-color: var(--primary-hover);
+        }
+        .btn-submit:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* 결과/상태 메시지 */
+        #statusMessage {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 0.9rem;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header class="header">
+            <h1>KWANGWOON UNIV. EATS</h1>
+        </header>
+
+        <div class="content">
+            <h2 class="page-title">광운대학교 맛집 추천</h2>
+
+            <form id="recommendForm" onsubmit="event.preventDefault(); register();">
+                
+                <div class="form-group">
+                    <label class="form-label">배고픔 정도</label>
+                    <div class="range-container">
+                        <input type="range" id="hunger" min="0" max="100" value="50" oninput="updateHunger(this.value)">
+                    </div>
+                    <div class="hunger-value">현재 상태: <span id="hungerText">50</span>%</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">식사 시간</label>
+                    <div class="chip-group">
+                        <input type="radio" name="mealTime" id="time1" value="아침" class="chip-input">
+                        <label for="time1" class="chip-label">아침</label>
+
+                        <input type="radio" name="mealTime" id="time2" value="점심" class="chip-input" checked>
+                        <label for="time2" class="chip-label">점심</label>
+
+                        <input type="radio" name="mealTime" id="time3" value="저녁" class="chip-input">
+                        <label for="time3" class="chip-label">저녁</label>
+
+                        <input type="radio" name="mealTime" id="time4" value="야식" class="chip-input">
+                        <label for="time4" class="chip-label">야식</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">원하는 종류</label>
+                    <div class="chip-group">
+                        <input type="radio" name="cuisine" id="food1" value="한식" class="chip-input" checked>
+                        <label for="food1" class="chip-label">한식</label>
+
+                        <input type="radio" name="cuisine" id="food2" value="중식" class="chip-input">
+                        <label for="food2" class="chip-label">중식</label>
+
+                        <input type="radio" name="cuisine" id="food3" value="양식" class="chip-input">
+                        <label for="food3" class="chip-label">양식</label>
+
+                        <input type="radio" name="cuisine" id="food4" value="일식" class="chip-input">
+                        <label for="food4" class="chip-label">일식</label>
+
+                        <input type="radio" name="cuisine" id="food5" value="디저트" class="chip-input">
+                        <label for="food5" class="chip-label">디저트</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">예산 (1인 기준)</label>
+                    <div class="input-group">
+                        <input type="number" id="price" class="input-field" placeholder="예: 10000" step="1000">
+                        <span class="unit">원</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">학교에서의 거리 (도보)</label>
+                    <div class="chip-group">
+                        <input type="radio" name="distance" id="dist1" value="5" class="chip-input" checked>
+                        <label for="dist1" class="chip-label">5분 이내</label>
+
+                        <input type="radio" name="distance" id="dist2" value="7" class="chip-input">
+                        <label for="dist2" class="chip-label">7분 이내</label>
+
+                        <input type="radio" name="distance" id="dist3" value="10" class="chip-input">
+                        <label for="dist3" class="chip-label">10분 이내</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">추천 맛집 찾기</button>
+            </form>
+
+            <div id="statusMessage"></div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * [CORE REQUIREMENT]
+         * API 서버 URL 정의
+         * 현재는 비어있음 (""). 백엔드 배포 후 주소를 입력하세요.
+         * 예: "https://api.kwangwoon-eats.com/recommend"
+         */
+        const SERVER_URL = ""; 
+
+        // 배고픔 슬라이더 값 업데이트
+        function updateHunger(val) {
+            document.getElementById('hungerText').innerText = val;
+        }
+
+        // 상태 메시지 출력 함수
+        function showStatus(msg, isError = false) {
+            const el = document.getElementById('statusMessage');
+            el.innerText = msg;
+            el.style.color = isError ? '#d32f2f' : '#2e7d32'; // 빨강(에러) 또는 초록(성공)
+        }
+
+        /**
+         * [CORE REQUIREMENT] register() function
+         * 폼 데이터를 JSON으로 변환하여 서버에 POST 요청
+         */
+        async function register() {
+            // 1. 데이터 수집
+            const hunger = document.getElementById('hunger').value;
+            const price = document.getElementById('price').value;
+            
+            // Radio Button 값 가져오기 (선택된 요소 찾기)
+            const mealTime = document.querySelector('input[name="mealTime"]:checked')?.value;
+            const cuisine = document.querySelector('input[name="cuisine"]:checked')?.value;
+            const distance = document.querySelector('input[name="distance"]:checked')?.value;
+
+            // 유효성 검사 (가격 미입력 시)
+            if (!price) {
+                showStatus("⚠️ 예산을 입력해주세요.", true);
+                document.getElementById('price').focus();
+                return;
+            }
+
+            // 2. 전송할 데이터 객체 생성 (JSON 구조)
+            const payload = {
+                hunger_level: parseInt(hunger),
+                meal_time: mealTime,
+                cuisine_type: cuisine,
+                budget: parseInt(price),
+                max_distance_minutes: parseInt(distance),
+                request_time: new Date().toISOString()
+            };
+
+            showStatus("맛집 데이터를 검색중입니다...");
+
+            try {
+                // [CORE REQUIREMENT] fetch 함수 구조
+                const response = await fetch(SERVER_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log("Success:", data);
+                showStatus("✅ 추천 목록을 불러왔습니다!");
+                
+                // 이후 data를 받아 화면에 그리는 로직이 추가될 수 있음
+
+            } catch (error) {
+                // SERVER_URL이 비어있으므로 이곳이 실행됩니다.
+                console.error("Fetch Error:", error);
+
+                if (SERVER_URL === "") {
+                    // 개발 단계 안내 메시지
+                    showStatus("🚫 [개발 모드] 서버 주소가 설정되지 않아 전송되지 않았습니다.", true);
+                    console.log("전송하려던 데이터:", payload);
+                } else {
+                    showStatus("❌ 서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.", true);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
