@@ -345,22 +345,22 @@
          * [CORE REQUIREMENT] register() function
          * 폼 데이터를 JSON으로 변환하여 서버에 POST 요청
          */
-        async function register() {
-            /* index (1).html 파일의 <script> 태그 안쪽, register() 함수 전체를 이 코드로 교체하세요. */
-
 async function register() {
+    // 버튼 요소를 가져옵니다.
+    const submitButton = document.querySelector('.btn-submit');
+    
     // 1. 데이터 수집
     const hunger = document.getElementById('hunger').value;
     const price = document.getElementById('price').value;
     
-    // Radio Button 값 가져오기 (선택된 요소 찾기)
+    // Radio Button 값 가져오기
     const mealTime = document.querySelector('input[name="mealTime"]:checked')?.value;
     const cuisine = document.querySelector('input[name="cuisine"]:checked')?.value;
     const distance = document.querySelector('input[name="distance"]:checked')?.value;
 
     // 유효성 검사 (가격 미입력 시)
-    if (!price) {
-        showStatus("⚠️ 예산을 입력해주세요.", true);
+    if (!price || parseInt(price) <= 0) { // 0원 이하도 예외처리
+        showStatus("⚠️ 예산을 정확히 입력해주세요.", true);
         document.getElementById('price').focus();
         return;
     }
@@ -375,11 +375,12 @@ async function register() {
         request_time: new Date().toISOString()
     };
     
-    // ✅ (A단계 추가) 결과 컨테이너 가져오기 및 초기화
     const resultsContainer = document.getElementById('resultsContainer');
     resultsContainer.innerHTML = ''; // 검색 시작 전에 이전 결과 지우기
-
     showStatus("맛집 데이터를 검색중입니다...");
+
+    // 요청 시작: 버튼 비활성화
+    submitButton.disabled = true;
 
     try {
         // [CORE REQUIREMENT] fetch 함수 구조
@@ -400,12 +401,11 @@ async function register() {
         console.log("Success:", data);
         showStatus("✅ 추천 목록을 불러왔습니다!");
         
-        // 🚀 (B단계 추가) 결과 표시 로직
+        // 🚀 (B단계) 결과 표시 로직
         if (data && data.recommendations && data.recommendations.length > 0) {
             data.recommendations.forEach(restaurant => {
                 const card = document.createElement('div');
                 card.className = 'result-card';
-                // 맛집 정보를 카드 HTML로 만들어서 넣기
                 card.innerHTML = `
                     <h3>${restaurant.name} <span class="rating">(${restaurant.rating}점)</span></h3>
                     <p>✅ 종류: ${restaurant.cuisine} | 예상 예산: ${restaurant.budget.toLocaleString()}원</p>
@@ -413,30 +413,56 @@ async function register() {
                 `;
                 resultsContainer.appendChild(card);
             });
+            
+            // ⭐️ (개선 2) 결과 영역으로 스크롤
+            resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
         } else {
-            // 추천 목록이 비어있을 때
             resultsContainer.innerHTML = '<p style="text-align:center; color: var(--text-sub); margin-top: 20px;">조건에 맞는 맛집이 없습니다. 조건을 바꿔서 다시 시도해보세요.</p>';
         }
-        // 🚀 (B단계 추가 끝)
 
     } catch (error) {
-        // SERVER_URL이 비어있으므로 이곳이 실행됩니다.
         console.error("Fetch Error:", error);
 
-        if (SERVER_URL === "") {
-            // 개발 단계 안내 메시지
+        if (SERVER_URL === "https://690c5390-4fcc-422d-b5f2-54fc010c64fa-00-bfmkaky2tk2p.picard.replit.dev/recommend_eats") {
+             // Replit 임시 주소의 경우, 예시 결과라도 표시하여 개발 과정을 돕습니다.
+             showStatus("⚠️ [연결은 성공했으나, 서버 응답 오류] 임시 예시 데이터를 표시합니다.", true);
+             const mockData = {
+                 "recommendations": [
+                     {"name": "광운대 대표 분식", "cuisine": "한식", "budget": 7000, "distance": 3, "rating": 4.2, "menu": "떡볶이, 김밥"},
+                     {"name": "버건디 돈까스", "cuisine": "일식", "budget": 9500, "distance": 6, "rating": 4.5, "menu": "치즈돈까스, 냉모밀"}
+                 ]
+             };
+             mockData.recommendations.forEach(restaurant => {
+                const card = document.createElement('div');
+                card.className = 'result-card';
+                card.innerHTML = `
+                    <h3>${restaurant.name} <span class="rating">(${restaurant.rating}점)</span></h3>
+                    <p>✅ 종류: ${restaurant.cuisine} | 예상 예산: ${restaurant.budget.toLocaleString()}원</p>
+                    <p>🚶 거리: ${restaurant.distance}분 | 🍽️ 메뉴: ${restaurant.menu}</p>
+                `;
+                resultsContainer.appendChild(card);
+            });
+
+        } else if (SERVER_URL === "") {
+            // 개발 단계 안내 메시지 (기존 로직 유지)
             showStatus("🚫 [개발 모드] 서버 주소가 설정되지 않아 전송되지 않았습니다.", true);
             console.log("전송하려던 데이터:", payload);
         } else {
             showStatus("❌ 서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.", true);
         }
+    } finally {
+        // 요청 완료: 버튼 다시 활성화
+        submitButton.disabled = false;
     }
+}
 }
         }
     </script>
 </body>
 
 </html>
+
 
 
 
