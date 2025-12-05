@@ -204,6 +204,34 @@
             font-size: 0.9rem;
             min-height: 20px;
         }
+    /* 결과 카드 디자인 */
+#resultsContainer {
+    margin-top: 30px;
+}
+.result-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+.result-card h3 {
+    color: var(--primary-color);
+    margin-bottom: 5px;
+    font-size: 1.1rem;
+}
+.result-card .rating {
+    font-weight: 700;
+    color: #f9a825;
+    font-size: 0.9rem;
+}
+.result-card p {
+    font-size: 0.9rem;
+    color: var(--text-sub);
+    margin-bottom: 3px;
+}
+
     </style>
 </head>
 <body>
@@ -289,6 +317,7 @@
             </form>
 
             <div id="statusMessage"></div>
+            <div id="resultsContainer"></div>
         </div>
     </div>
 
@@ -317,71 +346,98 @@
          * 폼 데이터를 JSON으로 변환하여 서버에 POST 요청
          */
         async function register() {
-            // 1. 데이터 수집
-            const hunger = document.getElementById('hunger').value;
-            const price = document.getElementById('price').value;
-            
-            // Radio Button 값 가져오기 (선택된 요소 찾기)
-            const mealTime = document.querySelector('input[name="mealTime"]:checked')?.value;
-            const cuisine = document.querySelector('input[name="cuisine"]:checked')?.value;
-            const distance = document.querySelector('input[name="distance"]:checked')?.value;
+            /* index (1).html 파일의 <script> 태그 안쪽, register() 함수 전체를 이 코드로 교체하세요. */
 
-            // 유효성 검사 (가격 미입력 시)
-            if (!price) {
-                showStatus("⚠️ 예산을 입력해주세요.", true);
-                document.getElementById('price').focus();
-                return;
-            }
+async function register() {
+    // 1. 데이터 수집
+    const hunger = document.getElementById('hunger').value;
+    const price = document.getElementById('price').value;
+    
+    // Radio Button 값 가져오기 (선택된 요소 찾기)
+    const mealTime = document.querySelector('input[name="mealTime"]:checked')?.value;
+    const cuisine = document.querySelector('input[name="cuisine"]:checked')?.value;
+    const distance = document.querySelector('input[name="distance"]:checked')?.value;
 
-            // 2. 전송할 데이터 객체 생성 (JSON 구조)
-            const payload = {
-                hunger_level: parseInt(hunger),
-                meal_time: mealTime,
-                cuisine_type: cuisine,
-                budget: parseInt(price),
-                max_distance_minutes: parseInt(distance),
-                request_time: new Date().toISOString()
-            };
+    // 유효성 검사 (가격 미입력 시)
+    if (!price) {
+        showStatus("⚠️ 예산을 입력해주세요.", true);
+        document.getElementById('price').focus();
+        return;
+    }
 
-            showStatus("맛집 데이터를 검색중입니다...");
+    // 2. 전송할 데이터 객체 생성 (JSON 구조)
+    const payload = {
+        hunger_level: parseInt(hunger),
+        meal_time: mealTime,
+        cuisine_type: cuisine,
+        budget: parseInt(price),
+        max_distance_minutes: parseInt(distance),
+        request_time: new Date().toISOString()
+    };
+    
+    // ✅ (A단계 추가) 결과 컨테이너 가져오기 및 초기화
+    const resultsContainer = document.getElementById('resultsContainer');
+    resultsContainer.innerHTML = ''; // 검색 시작 전에 이전 결과 지우기
 
-            try {
-                // [CORE REQUIREMENT] fetch 함수 구조
-                const response = await fetch(SERVER_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
+    showStatus("맛집 데이터를 검색중입니다...");
 
-                if (!response.ok) {
-                    throw new Error(`HTTP Error: ${response.status}`);
-                }
+    try {
+        // [CORE REQUIREMENT] fetch 함수 구조
+        const response = await fetch(SERVER_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
 
-                const data = await response.json();
-                console.log("Success:", data);
-                showStatus("✅ 추천 목록을 불러왔습니다!");
-                
-                // 이후 data를 받아 화면에 그리는 로직이 추가될 수 있음
+        if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.status}`);
+        }
 
-            } catch (error) {
-                // SERVER_URL이 비어있으므로 이곳이 실행됩니다.
-                console.error("Fetch Error:", error);
+        const data = await response.json(); // 서버 응답 데이터 (JSON)
+        
+        console.log("Success:", data);
+        showStatus("✅ 추천 목록을 불러왔습니다!");
+        
+        // 🚀 (B단계 추가) 결과 표시 로직
+        if (data && data.recommendations && data.recommendations.length > 0) {
+            data.recommendations.forEach(restaurant => {
+                const card = document.createElement('div');
+                card.className = 'result-card';
+                // 맛집 정보를 카드 HTML로 만들어서 넣기
+                card.innerHTML = `
+                    <h3>${restaurant.name} <span class="rating">(${restaurant.rating}점)</span></h3>
+                    <p>✅ 종류: ${restaurant.cuisine} | 예상 예산: ${restaurant.budget.toLocaleString()}원</p>
+                    <p>🚶 거리: ${restaurant.distance}분 | 🍽️ 메뉴: ${restaurant.menu}</p>
+                `;
+                resultsContainer.appendChild(card);
+            });
+        } else {
+            // 추천 목록이 비어있을 때
+            resultsContainer.innerHTML = '<p style="text-align:center; color: var(--text-sub); margin-top: 20px;">조건에 맞는 맛집이 없습니다. 조건을 바꿔서 다시 시도해보세요.</p>';
+        }
+        // 🚀 (B단계 추가 끝)
 
-                if (SERVER_URL === "") {
-                    // 개발 단계 안내 메시지
-                    showStatus("🚫 [개발 모드] 서버 주소가 설정되지 않아 전송되지 않았습니다.", true);
-                    console.log("전송하려던 데이터:", payload);
-                } else {
-                    showStatus("❌ 서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.", true);
-                }
-            }
+    } catch (error) {
+        // SERVER_URL이 비어있으므로 이곳이 실행됩니다.
+        console.error("Fetch Error:", error);
+
+        if (SERVER_URL === "") {
+            // 개발 단계 안내 메시지
+            showStatus("🚫 [개발 모드] 서버 주소가 설정되지 않아 전송되지 않았습니다.", true);
+            console.log("전송하려던 데이터:", payload);
+        } else {
+            showStatus("❌ 서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.", true);
+        }
+    }
+}
         }
     </script>
 </body>
 
 </html>
+
 
 
 
