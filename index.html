@@ -293,14 +293,13 @@
     </div>
 
     <script>
-        /*'https://jiog36138-png.github.io/Kwgeo.github.io/generate_minutes'*
+        /*
          * [CORE REQUIREMENT]
          * API 서버 URL 정의
          * 현재는 비어있음 (""). 백엔드 배포 후 주소를 입력하세요.
          * 예: "https://api.kwangwoon-eats.com/recommend"
          */
-        const SERVER_URL = "https://jiog36138-png.github.io/Kwgeo.github.io/generate_minutes"; 
-
+        const SERVER_URL = "http://localhost:8000/recommend_eats";
         // 배고픔 슬라이더 값 업데이트
         function updateHunger(val) {
             document.getElementById('hungerText').innerText = val;
@@ -383,6 +382,7 @@
 </body>
 
 </html>
+
 
 
 
