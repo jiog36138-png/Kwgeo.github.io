@@ -231,4 +231,234 @@
             align-items: center;
         }
         .result-card .rating {
-            font-weight: 7
+            font-weight: 700;
+            color: #f9a825;
+            font-size: 0.9rem;
+        }
+        .result-card p {
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            margin-bottom: 5px;
+            line-height: 1.4;
+        }
+        
+        /* 지도 버튼 그룹 */
+        .map-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .map-btn {
+            flex: 1;
+            padding: 8px;
+            font-size: 0.85rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: #fff;
+            color: #333;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .map-btn.naver { border-color: #03C75A; color: #03C75A; }
+        .map-btn.naver:hover { background: #03C75A; color: white; }
+        
+        .map-btn.google { border-color: #4285F4; color: #4285F4; }
+        .map-btn.google:hover { background: #4285F4; color: white; }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header class="header">
+            <h1>KWANGWOON UNIV. EATS</h1>
+        </header>
+
+        <div class="content">
+            <h2 class="page-title">광운대학교 맛집 추천</h2>
+
+            <form id="recommendForm" onsubmit="event.preventDefault(); register();">
+                
+                <div class="form-group">
+                    <label class="form-label">배고픔 정도</label>
+                    <div class="range-container">
+                        <input type="range" id="hunger" min="0" max="100" value="50" oninput="updateHunger(this.value)">
+                    </div>
+                    <div class="hunger-value">현재 상태: <span id="hungerText">50</span>%</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">식사 시간</label>
+                    <div class="chip-group">
+                        <input type="radio" name="mealTime" id="time1" value="아침" class="chip-input">
+                        <label for="time1" class="chip-label">아침</label>
+
+                        <input type="radio" name="mealTime" id="time2" value="점심" class="chip-input" checked>
+                        <label for="time2" class="chip-label">점심</label>
+
+                        <input type="radio" name="mealTime" id="time3" value="저녁" class="chip-input">
+                        <label for="time3" class="chip-label">저녁</label>
+
+                        <input type="radio" name="mealTime" id="time4" value="야식" class="chip-input">
+                        <label for="time4" class="chip-label">야식</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">원하는 종류</label>
+                    <div class="chip-group">
+                        <input type="radio" name="cuisine" id="food1" value="한식" class="chip-input" checked>
+                        <label for="food1" class="chip-label">한식</label>
+
+                        <input type="radio" name="cuisine" id="food2" value="중식" class="chip-input">
+                        <label for="food2" class="chip-label">중식</label>
+
+                        <input type="radio" name="cuisine" id="food3" value="양식" class="chip-input">
+                        <label for="food3" class="chip-label">양식</label>
+
+                        <input type="radio" name="cuisine" id="food4" value="일식" class="chip-input">
+                        <label for="food4" class="chip-label">일식</label>
+
+                        <input type="radio" name="cuisine" id="food5" value="디저트" class="chip-input">
+                        <label for="food5" class="chip-label">디저트</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">예산 (1인 기준)</label>
+                    <div class="input-group">
+                        <input type="number" id="price" class="input-field" value="10000" placeholder="예: 10000" step="1000">
+                        <span class="unit">원</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">학교에서의 거리 (도보)</label>
+                    <div class="chip-group">
+                        <input type="radio" name="distance" id="dist1" value="5" class="chip-input" checked>
+                        <label for="dist1" class="chip-label">5분 이내</label>
+
+                        <input type="radio" name="distance" id="dist2" value="10" class="chip-input">
+                        <label for="dist2" class="chip-label">10분 이내</label>
+
+                        <input type="radio" name="distance" id="dist3" value="20" class="chip-input">
+                        <label for="dist3" class="chip-label">20분 이내</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">추천 맛집 찾기</button>
+            </form>
+
+            <div id="statusMessage"></div>
+            <div id="resultsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // 배고픔 슬라이더 UI 업데이트
+        function updateHunger(val) {
+            document.getElementById('hungerText').innerText = val;
+        }
+
+        // 상태 메시지 출력 함수
+        function showStatus(msg, isError = false) {
+            const el = document.getElementById('statusMessage');
+            el.innerText = msg;
+            el.style.color = isError ? '#d32f2f' : '#2e7d32'; 
+        }
+
+        /**
+         * [수정됨] 백엔드(FastAPI)와 통신하는 추천 요청 함수
+         */
+        async function register() { 
+            const submitButton = document.querySelector('.btn-submit');
+            const resultsContainer = document.getElementById('resultsContainer');
+
+            // 1. 입력값 수집
+            const hungerVal = document.getElementById('hunger').value;
+            const priceVal = document.getElementById('price').value;
+            const mealTimeVal = document.querySelector('input[name="mealTime"]:checked')?.value;
+            const cuisineVal = document.querySelector('input[name="cuisine"]:checked')?.value;
+            const distanceVal = document.querySelector('input[name="distance"]:checked')?.value;
+
+            // 유효성 검사 (서버 전송 전 필수 값 확인)
+            if (!priceVal || parseInt(priceVal) <= 0 || !mealTimeVal || !cuisineVal || !distanceVal) {
+                showStatus("⚠️ 모든 선택 항목을 정확히 입력하거나 선택해주세요.", true);
+                return;
+            }
+
+            // 서버로 전송할 데이터 객체 생성 (FastAPI Pydantic 모델과 일치)
+            const requestData = {
+                hunger: parseInt(hungerVal),
+                mealTime: mealTimeVal,
+                cuisine: cuisineVal,
+                price: parseInt(priceVal),
+                distance: distanceVal
+            };
+
+            // UI 초기화 및 로딩 시작
+            resultsContainer.innerHTML = ''; 
+            submitButton.disabled = true;
+            showStatus("맛집 추천 서버에 요청 중...");
+
+            try {
+                // [CORE LOGIC] FastAPI 서버의 /register 엔드포인트로 POST 요청
+                // 주의: Replit에서 프론트/백엔드 URL이 다를 경우 아래 주소를 수정해야 합니다.
+                // 로컬 테스트 시: 'http://localhost:8000/register'
+                // Replit 배포 시: 'https://[당신의-REPL-주소].replit.dev/register'
+                const response = await fetch('http://localhost:8000/register', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData),
+                });
+
+                // 응답을 JSON으로 파싱
+                const result = await response.json();
+
+                // 3. 결과 렌더링 (통신 성공 시)
+                if (response.ok && result.status === 'success') {
+                    showStatus(`✅ 서버 통신 성공! 응답 메시지: ${result.message}`);
+                    
+                    // 수신된 데이터를 사용자에게 보여줍니다.
+                    resultsContainer.innerHTML = `
+                        <div class="result-card">
+                            <h3>✅ 서버 통신 검증 성공</h3>
+                            <p><strong>수신 응답:</strong> ${result.message}</p>
+                            <p><strong>서버가 받은 데이터:</strong></p>
+                            <pre style="white-space: pre-wrap; font-size: 0.85rem; color: #333; background: #f1f3f5; padding: 10px; border-radius: 6px;">${JSON.stringify(result.received_data, null, 2)}</pre>
+                            <p style="margin-top: 10px; color: var(--primary-color); font-weight: 500;">
+                                ➡️ FastAPI 콘솔 로그와 위 데이터가 일치하는지 확인하여 통신 검증을 완료하세요.
+                            </p>
+                        </div>
+                    `;
+                    // 결과 영역으로 스크롤
+                    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    
+                } else {
+                    // HTTP 오류 상태 코드이거나 서버 응답 status가 'success'가 아닌 경우
+                    throw new Error(result.message || '서버 응답 오류 (상태 코드가 200번대가 아님)');
+                }
+
+            } catch (error) {
+                // 네트워크 오류 또는 서버 접속 실패 시
+                showStatus(`❌ 서버 통신 실패: ${error.message}`, true);
+                resultsContainer.innerHTML = `
+                    <div style="text-align:center; padding: 20px; color: #d32f2f;">
+                        <p>통신에 실패했습니다. 다음을 확인해주세요:</p>
+                        <p>1. FastAPI 서버(main.py)가 **실행 중**인가요?</p>
+                        <p>2. URL(http://localhost:8000/register)이 **정확**한가요?</p>
+                        <p style="font-size: 0.8rem; color: #666;">(Replit의 경우 Webview URL을 사용해야 할 수도 있습니다)</p>
+                    </div>
+                `;
+
+            } finally {
+                // 버튼 활성화
+                submitButton.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
