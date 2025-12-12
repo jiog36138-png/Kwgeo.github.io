@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>광운대학교 맛집 추천 - KW EATS API 뼈대</title>
+    <title>광운대학교 맛집 추천 - KW EATS AI 기말 프로젝트</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     
@@ -130,7 +130,7 @@
         /* 결과/상태 메시지 */
         #statusMessage { margin-top: 20px; text-align: center; font-size: 1rem; min-height: 20px; font-weight: 500;}
         
-        /* 결과 카드 디자인 */
+        /* 결과 카드 디자인 - AI 결과 표시를 위해 재사용 */
         #resultsContainer { margin-top: 30px; }
         .result-card {
             background: var(--card-bg); border: 1px solid var(--border-color); border-left: 5px solid var(--primary-color); border-radius: 8px; 
@@ -142,16 +142,8 @@
         .result-card .rating { font-weight: 700; color: #ffc107; font-size: 1rem; }
         .result-card p { font-size: 0.9rem; color: var(--text-sub); margin-bottom: 6px; line-height: 1.4; }
         
-        /* 지도 버튼 그룹 */
-        .map-buttons { display: flex; gap: 8px; margin-top: 15px; }
-        .map-btn {
-            flex: 1; padding: 10px; font-size: 0.9rem; border: 1px solid #333; border-radius: 6px; background: #fff; 
-            color: #333; text-decoration: none; text-align: center; font-weight: 500; transition: all 0.2s;
-        }
-        .map-btn.naver { border-color: #03C75A; color: #03C75A; }
-        .map-btn.naver:hover { background: #03C75A; color: white; }
-        .map-btn.google { border-color: #4285F4; color: #4285F4; }
-        .map-btn.google:hover { background: #4285F4; color: white; }
+        /* 지도 버튼 그룹 (AI 결과 표시 시 사용하지 않음) */
+        .map-buttons { display: none; } 
     </style>
 </head>
 <body>
@@ -162,9 +154,9 @@
         </header>
 
         <div class="content">
-            <h2 class="page-title">AI 맛집 추천 (API 뼈대)</h2>
+            <h2 class="page-title">AI 맛집 추천 (API 연동)</h2>
 
-            <form id="recommendForm" onsubmit="event.preventDefault(); register();">
+            <form id="recommendForm" onsubmit="event.preventDefault(); onRunAIButtonClicked();">
                 
                 <div class="form-group">
                     <label class="form-label">배고픔 정도</label>
@@ -241,7 +233,6 @@
                     <textarea id="notes" class="input-field" placeholder="예: 매운 음식 선호, 조용했으면 좋겠음"></textarea>
                 </div>
 
-
                 <button type="submit" class="btn-submit">AI 추천 맛집 찾기</button>
             </form>
 
@@ -251,12 +242,11 @@
     </div>
 
     <script>
-        // [핵심 요구사항 1] API 서버 주소 상수
-        // 나중에 FastAPI 서버 URL로 변경해야 합니다.
-        const SERVER_URL = 'https://690c5390-4fcc-422d-b5f2-54fc010c64fa-00-bfmkaky2tk2p.picard.replit.dev'; 
-        // Replit 등 원격 서버를 사용하는 경우 'https://[당신의-replit-주소].repl.co' 등으로 변경해야 합니다.
+        // [규칙 1] 백엔드 기본 주소 상수 정의
+        const BACKEND_BASE_URL = "여기에_내_Replit_URL만_넣기"; // 예: https://myproject.username.repl.co
+        const AI_URL = BACKEND_BASE_URL + "/ai";
 
-        // UI 함수
+        // === 유틸리티 함수 ===
         function updateHunger(val) {
             document.getElementById('hungerText').innerText = val;
         }
@@ -267,132 +257,119 @@
             el.style.color = isError ? '#d32f2f' : '#2e7d32'; 
         }
 
-        // 테스트를 위한 더미 데이터 (서버 응답을 가정)
-        const DUMMY_RESPONSE = [
-            { name: "광운분식", menu: "떡볶이, 김밥", budget: 7000, distance: 5, rating: 4.3, mapQuery: "광운대 광운분식" },
-            { name: "학식당", menu: "오늘의 메뉴", budget: 5500, distance: 2, rating: 3.8, mapQuery: "광운대 학식당" }
-        ];
-
-
-        /**
-         * [핵심 요구사항 2] API 통신 로직 함수
-         * 버튼을 누르면 이 함수가 실행되며, 서버로 데이터 전송을 시도합니다.
-         */
-        async function register() {
-            const submitButton = document.querySelector('.btn-submit');
+        function displayAIResult(answer) {
             const resultsContainer = document.getElementById('resultsContainer');
-            
-            // 1. 입력값 수집 및 객체 생성
-            const priceVal = document.getElementById('price').value;
-            const mealTimeVal = document.querySelector('input[name="mealTime"]:checked')?.value;
-            const cuisineVal = document.querySelector('input[name="cuisine"]:checked')?.value;
-            const distanceVal = document.querySelector('input[name="distance"]:checked')?.value;
-            const hungerVal = document.getElementById('hunger').value;
-            const notesVal = document.getElementById('notes').value;
+            // 이전 결과 초기화
+            resultsContainer.innerHTML = ''; 
 
+            const card = document.createElement('div');
+            card.className = 'result-card'; // 기존 카드 디자인 재사용
+            
+            // AI 결과 텍스트를 Pre-Wrap 스타일로 표시
+            card.innerHTML = `
+                <h3>AI 추천 결과 🤖</h3>
+                <p style="white-space: pre-wrap; margin-top: 15px; color: var(--text-main); font-size: 1rem; line-height: 1.6;">
+                    ${answer}
+                </p>
+                <div style="margin-top: 15px; font-size: 0.85rem; color: var(--text-sub);">
+                    (이 결과는 백엔드 서버에서 Gemini를 통해 생성되었습니다.)
+                </div>
+            `;
+            resultsContainer.appendChild(card);
+            resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+
+        // [필수 조건 1] 모든 입력값을 수집하는 함수
+        function collectInputsFromPage() {
             // ⚠️ 필수 입력값 유효성 검사 (예산)
+            const priceVal = document.getElementById('price').value;
             if (!priceVal || parseInt(priceVal) <= 0) {
-                showStatus("⚠️ 예산을 정확히 입력해주세요.", true);
+                showStatus("⚠️ 예산을 1원 이상으로 정확히 입력해주세요.", true);
                 document.getElementById('price').focus();
-                return;
+                return null;
             }
 
-            const requestData = {
-                hunger: parseInt(hungerVal),
-                mealTime: mealTimeVal,
-                cuisine: cuisineVal,
+            // 모든 입력 필드 값을 inputs 객체로 변환
+            const inputs = {
+                // 슬라이더 (정수)
+                hunger: parseInt(document.getElementById('hunger').value), 
+                // 라디오 버튼 (문자열)
+                mealTime: document.querySelector('input[name="mealTime"]:checked')?.value || '점심', 
+                cuisine: document.querySelector('input[name="cuisine"]:checked')?.value || '한식',
+                distance: parseInt(document.querySelector('input[name="distance"]:checked')?.value) || 5, // 정수로 변환
+                // 직접 입력 (정수)
                 price: parseInt(priceVal),
-                distance: parseInt(distanceVal),
-                notes: notesVal
+                // 텍스트 영역 (문자열)
+                notes: document.getElementById('notes').value
             };
+            
+            return inputs;
+        }
 
-            // 2. UI 초기화 및 로딩 시작
-            resultsContainer.innerHTML = ''; 
-            submitButton.disabled = true;
-            showStatus("🚀 AI 서버(FastAPI)로 요청을 보내는 중...");
+
+        // [규칙 5] AI_URL에 fetch를 수행하고 answer를 반환하는 함수
+        async function callAI(inputs) {
+            const requestBody = { inputs: inputs };
 
             try {
-                // [CORE LOGIC] 서버 통신 (method: 'POST')
-                const response = await fetch(`${SERVER_URL}/recommend`, {
-                    method: 'POST', // 통신 방식
+                const response = await fetch(AI_URL, {
+                    method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json' 
                     },
-                    // JSON 데이터 전송
-                    body: JSON.stringify(requestData), 
+                    body: JSON.stringify(requestBody), // [규칙 3] 요청 body
                 });
 
-                // 서버 응답 처리
-                const result = await response.json();
-
-                if (response.ok) {
-                    // 서버 응답이 성공 (200 OK)일 경우
-                    handleServerResponse(result);
-                } else {
-                    // 4xx, 5xx 에러인 경우
-                    throw new Error(`서버 오류: ${result.detail || '알 수 없는 오류'}`);
+                if (!response.ok) {
+                    const errorDetail = await response.json().catch(() => ({}));
+                    throw new Error(errorDetail.detail || `HTTP 오류: ${response.status}`);
                 }
-            } catch (error) {
-                // Fetch 자체 실패 (SERVER_URL 미작동, CORS 문제 등)
-                showStatus(`❌ API 통신 실패 (URL 확인 필요): ${error.message}`, true);
+
+                const result = await response.json();
                 
-                // 통신 실패 시 더미 데이터로 대체 표시 (선택 사항, 테스트용)
-                // handleServerResponse({ recommendations: DUMMY_RESPONSE, message: "더미 데이터 표시 (통신 실패)" });
-            } finally {
-                // 4. 버튼 활성화
-                submitButton.disabled = false;
+                // [규칙 3] 응답 body에서 'answer' 문자열 추출
+                if (result.answer === undefined) {
+                    return "[통신 오류] 서버 응답 형식이 올바르지 않습니다 (answer 키 누락)";
+                }
+
+                return result.answer;
+
+            } catch (error) {
+                // 통신 실패 (URL 오류, 서버 다운 등)
+                return `[통신 오류] 서버 연결 실패: ${error.message}. BACKEND_BASE_URL 상수를 확인하거나, 백엔드 서버(main.py)를 실행해 주세요.`;
             }
         }
 
-        /**
-         * 서버 응답을 처리하고 결과를 화면에 표시하는 함수
-         */
-        function handleServerResponse(data) {
-            const resultsContainer = document.getElementById('resultsContainer');
-            const recommendations = data.recommendations || []; // 서버 응답에서 추천 목록을 가져옴
 
-            if (recommendations.length > 0) {
-                showStatus(`✅ ${recommendations.length}개의 맛집을 찾았습니다!`);
-                
-                recommendations.forEach(r => {
-                    const card = document.createElement('div');
-                    card.className = 'result-card';
-                    
-                    // 지도 검색 URL 생성
-                    const query = r.mapQuery || `광운대 ${r.name}`; // 서버에서 검색 쿼리를 줄 수도 있음
-                    const naverMapUrl = `https://map.naver.com/v5/search/${encodeURIComponent(query)}`;
-                    const googleMapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+        // [필수 조건 2] 버튼 클릭 시 실행되는 메인 함수
+        async function onRunAIButtonClicked() {
+            const submitButton = document.querySelector('.btn-submit');
+            
+            // 1. 입력값 수집 및 유효성 검사
+            const inputs = collectInputsFromPage();
+            if (!inputs) {
+                return; // 유효성 검사 실패 시 종료
+            }
 
-                    // toLocaleString()은 숫자 포맷팅을 위해 사용
-                    const budgetText = r.budget ? r.budget.toLocaleString() + '원' : '정보 없음';
+            // UI 상태 변경
+            submitButton.disabled = true;
+            showStatus("⏳ AI 서버로 요청 전송 및 답변을 기다리는 중입니다...", false);
+            
+            // 2. AI 호출 및 결과 수신
+            const answer = await callAI(inputs);
+            
+            // 3. UI 상태 복구 및 결과 출력
+            submitButton.disabled = false;
 
-                    card.innerHTML = `
-                        <h3>${r.name} <span class="rating">★ ${r.rating || 'N/A'}</span></h3>
-                        <p>🍽️ 시그니처 메뉴: <strong>${r.menu || '정보 없음'}</strong></p>
-                        <p>💰 평균 예산: <strong>${budgetText}</strong></p>
-                        <p>🚶 도보 거리: <strong>약 ${r.distance || 'N/A'}분</strong></p>
-                        <div class="map-buttons">
-                            <a href="${naverMapUrl}" target="_blank" class="map-btn naver">네이버 지도</a>
-                            <a href="${googleMapUrl}" target="_blank" class="map-btn google">구글 지도</a>
-                        </div>
-                    `;
-                    resultsContainer.appendChild(card);
-                });
-
-                // 결과 영역으로 스크롤
-                resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
+            if (answer.startsWith('[통신 오류]')) {
+                showStatus(answer, true); // 오류 메시지 빨간색 표시
+                displayAIResult("AI 결과를 받아오는 데 실패했습니다. 위의 오류 메시지를 확인하세요.");
             } else {
-                showStatus("조건에 맞는 맛집이 없습니다. 😢", true);
-                resultsContainer.innerHTML = `
-                    <div style="text-align:center; padding: 20px; color: var(--text-sub);">
-                        <p>선택하신 조건의 식당을 찾지 못했어요.</p>
-                        <p>예산을 조금 올리거나, 거리를 늘려보세요!</p>
-                    </div>
-                `;
+                showStatus("✅ AI 추천 결과 수신 성공! 답변을 화면에 표시합니다.", false);
+                displayAIResult(answer); // [필수 조건 3] AI 결과 출력 영역에 표시
             }
         }
     </script>
 </body>
 </html>
-
