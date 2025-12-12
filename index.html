@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>광운대학교 맛집 추천 - KW EATS</title>
+    <title>광운대학교 맛집 추천 - KW EATS API 뼈대</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     
     <style>
-        /* [Design System] */
+        /* [Design System] Modern & Clean */
         :root {
-            --primary-color: #8a1525;
+            --primary-color: #8a1525;  /* 광운대 버건디 */
             --primary-hover: #6b101d;
-            --bg-color: #f8f9fa;
-            --card-bg: #ffffff;
-            --text-main: #333333;
-            --text-sub: #666666;
-            --border-color: #e0e0e0;
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            --radius: 12px;
+            --bg-color: #f0f2f5;       /* 배경색: 라이트 그레이 */
+            --card-bg: #ffffff;        /* 카드 배경: 흰색 */
+            --text-main: #212529;
+            --text-sub: #6c757d;
+            --border-color: #dee2e6;
+            --shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            --radius: 10px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -29,213 +29,369 @@
             font-family: 'Noto Sans KR', sans-serif;
             display: flex;
             justify-content: center;
-            align-items: center;
             min-height: 100vh;
-            padding: 20px;
+            padding: 30px 15px;
         }
 
+        /* 메인 컨테이너 */
         .app-container {
             background: var(--card-bg);
             width: 100%;
-            max-width: 480px;
+            max-width: 500px; /* 모바일/태블릿 최적화 */
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             overflow: hidden;
-            border: 1px solid var(--border-color);
         }
 
-        /* [변경 확인용] 헤더를 파란색으로 변경 */
+        /* 상단 헤더 (Modern Sports Style) */
         .header {
-            background-color: #0054FF; /* 확인용 파란색 */
+            background-color: var(--primary-color);
             color: white;
-            padding: 1rem;
+            padding: 1.5rem;
             text-align: center;
+            border-bottom: 5px solid #ffc107; /* 강조 라인 */
         }
         .header h1 {
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
-        .content { padding: 2rem; }
+        /* 콘텐츠 영역 */
+        .content {
+            padding: 2.5rem;
+        }
         
         .page-title {
             text-align: center;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 700;
             color: var(--primary-color);
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
         }
 
-        .form-group { margin-bottom: 1.8rem; }
+        /* 폼 그룹 공통 */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
 
         .form-label {
             display: block;
             font-weight: 700;
-            margin-bottom: 0.8rem;
+            margin-bottom: 0.7rem;
             color: var(--text-main);
             font-size: 0.95rem;
         }
 
-        /* Range Slider */
+        /* Slider */
         .range-container { position: relative; padding: 0 5px; }
-        input[type=range] {
-            width: 100%; height: 6px; background: #ddd; border-radius: 5px; outline: none; -webkit-appearance: none;
-        }
+        input[type=range] { width: 100%; height: 8px; background: #ddd; border-radius: 4px; outline: none; -webkit-appearance: none; }
         input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--primary-color); cursor: pointer;
+            -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--primary-color); cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-        .hunger-value { text-align: right; font-size: 0.85rem; color: var(--text-sub); margin-top: 5px; }
+        .hunger-value { text-align: right; font-size: 0.9rem; color: var(--text-sub); margin-top: 5px; }
 
-        /* Chips */
+        /* Chips UI */
         .chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
         .chip-input { display: none; }
         .chip-label {
-            padding: 8px 16px; background-color: #fff; border: 1px solid var(--border-color); border-radius: 20px;
+            padding: 8px 15px; background-color: #fff; border: 1px solid var(--border-color); border-radius: 20px;
             font-size: 0.9rem; color: var(--text-sub); cursor: pointer; transition: all 0.2s ease;
         }
         .chip-input:checked + .chip-label {
             background-color: var(--primary-color); color: white; border-color: var(--primary-color); font-weight: 500;
+            box-shadow: 0 2px 4px rgba(138, 21, 37, 0.3);
         }
+        .chip-label:hover { border-color: var(--primary-color); }
 
-        /* Inputs */
+        /* Input Field */
         .input-group { position: relative; }
         .input-field {
-            width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; outline: none;
+            width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; outline: none; transition: border-color 0.3s;
         }
+        .input-field:focus { border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(138, 21, 37, 0.2); }
         .unit { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-sub); font-size: 0.9rem; }
 
-        /* Button */
-        .btn-submit {
-            width: 100%; padding: 16px; background-color: var(--primary-color); color: white; border: none;
-            border-radius: 8px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: background-color 0.3s; margin-top: 1rem;
+        /* 기타 요구사항 (Textarea) */
+        textarea.input-field {
+            resize: vertical; min-height: 80px;
         }
-        .btn-submit:disabled { background-color: #ccc; cursor: not-allowed; }
 
-        /* Results */
-        #statusMessage { margin-top: 15px; text-align: center; font-size: 0.9rem; min-height: 20px; }
+        /* 버튼 */
+        .btn-submit {
+            width: 100%; padding: 18px; background-color: var(--primary-color); color: white; border: none;
+            border-radius: 8px; font-size: 1.2rem; font-weight: 700; cursor: pointer; transition: background-color 0.3s, transform 0.1s; margin-top: 2rem;
+            box-shadow: 0 4px 10px rgba(138, 21, 37, 0.4);
+        }
+        .btn-submit:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        .btn-submit:disabled { background-color: #ccc; cursor: not-allowed; box-shadow: none; }
+
+        /* 결과/상태 메시지 */
+        #statusMessage { margin-top: 20px; text-align: center; font-size: 1rem; min-height: 20px; font-weight: 500;}
+        
+        /* 결과 카드 디자인 */
         #resultsContainer { margin-top: 30px; }
         .result-card {
-            background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px;
-            margin-top: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            background: var(--card-bg); border: 1px solid var(--border-color); border-left: 5px solid var(--primary-color); border-radius: 8px; 
+            padding: 20px; margin-top: 15px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); transition: all 0.2s;
         }
-        .result-card h3 { color: var(--primary-color); margin-bottom: 5px; font-size: 1.1rem; }
+        .result-card h3 {
+            color: var(--primary-color); margin-bottom: 5px; font-size: 1.2rem; display: flex; justify-content: space-between; align-items: center;
+        }
+        .result-card .rating { font-weight: 700; color: #ffc107; font-size: 1rem; }
+        .result-card p { font-size: 0.9rem; color: var(--text-sub); margin-bottom: 6px; line-height: 1.4; }
+        
+        /* 지도 버튼 그룹 */
+        .map-buttons { display: flex; gap: 8px; margin-top: 15px; }
+        .map-btn {
+            flex: 1; padding: 10px; font-size: 0.9rem; border: 1px solid #333; border-radius: 6px; background: #fff; 
+            color: #333; text-decoration: none; text-align: center; font-weight: 500; transition: all 0.2s;
+        }
+        .map-btn.naver { border-color: #03C75A; color: #03C75A; }
+        .map-btn.naver:hover { background: #03C75A; color: white; }
+        .map-btn.google { border-color: #4285F4; color: #4285F4; }
+        .map-btn.google:hover { background: #4285F4; color: white; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
         <header class="header">
-            <h1>KWANGWOON EATS (SERVER)</h1>
+            <h1>KWANGWOON EATS</h1>
         </header>
 
         <div class="content">
-            <h2 class="page-title">맛집 추천 (서버 연결됨)</h2>
+            <h2 class="page-title">AI 맛집 추천 (API 뼈대)</h2>
 
             <form id="recommendForm" onsubmit="event.preventDefault(); register();">
+                
                 <div class="form-group">
                     <label class="form-label">배고픔 정도</label>
                     <div class="range-container">
                         <input type="range" id="hunger" min="0" max="100" value="50" oninput="updateHunger(this.value)">
                     </div>
-                    <div class="hunger-value"><span id="hungerText">50</span>%</div>
+                    <div class="hunger-value">현재 상태: <span id="hungerText">50</span>%</div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">식사 시간</label>
+                    <label class="form-label">식사 시간대</label>
                     <div class="chip-group">
-                        <input type="radio" name="mealTime" id="time1" value="아침" class="chip-input"><label for="time1" class="chip-label">아침</label>
-                        <input type="radio" name="mealTime" id="time2" value="점심" class="chip-input" checked><label for="time2" class="chip-label">점심</label>
-                        <input type="radio" name="mealTime" id="time3" value="저녁" class="chip-input"><label for="time3" class="chip-label">저녁</label>
-                        <input type="radio" name="mealTime" id="time4" value="야식" class="chip-input"><label for="time4" class="chip-label">야식</label>
+                        <input type="radio" name="mealTime" id="time1" value="아침" class="chip-input">
+                        <label for="time1" class="chip-label">아침</label>
+
+                        <input type="radio" name="mealTime" id="time2" value="점심" class="chip-input" checked>
+                        <label for="time2" class="chip-label">점심</label>
+
+                        <input type="radio" name="mealTime" id="time3" value="저녁" class="chip-input">
+                        <label for="time3" class="chip-label">저녁</label>
+
+                        <input type="radio" name="mealTime" id="time4" value="야간" class="chip-input">
+                        <label for="time4" class="chip-label">야간</label>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">원하는 종류</label>
+                    <label class="form-label">원하는 음식 종류</label>
                     <div class="chip-group">
-                        <input type="radio" name="cuisine" id="food1" value="한식" class="chip-input" checked><label for="food1" class="chip-label">한식</label>
-                        <input type="radio" name="cuisine" id="food2" value="중식" class="chip-input"><label for="food2" class="chip-label">중식</label>
-                        <input type="radio" name="cuisine" id="food3" value="양식" class="chip-input"><label for="food3" class="chip-label">양식</label>
-                        <input type="radio" name="cuisine" id="food4" value="일식" class="chip-input"><label for="food4" class="chip-label">일식</label>
-                        <input type="radio" name="cuisine" id="food5" value="디저트" class="chip-input"><label for="food5" class="chip-label">디저트</label>
+                        <input type="radio" name="cuisine" id="food1" value="한식" class="chip-input" checked>
+                        <label for="food1" class="chip-label">한식</label>
+
+                        <input type="radio" name="cuisine" id="food2" value="중식" class="chip-input">
+                        <label for="food2" class="chip-label">중식</label>
+
+                        <input type="radio" name="cuisine" id="food3" value="양식" class="chip-input">
+                        <label for="food3" class="chip-label">양식</label>
+
+                        <input type="radio" name="cuisine" id="food4" value="일식" class="chip-input">
+                        <label for="food4" class="chip-label">일식</label>
+
+                        <input type="radio" name="cuisine" id="food5" value="디저트" class="chip-input">
+                        <label for="food5" class="chip-label">디저트</label>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">예산 (1인)</label>
+                    <label class="form-label">예산 (1인 기준)</label>
                     <div class="input-group">
-                        <input type="number" id="price" class="input-field" value="10000" placeholder="10000">
+                        <input type="number" id="price" class="input-field" value="10000" placeholder="예: 10000" step="1000">
                         <span class="unit">원</span>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">거리 (도보)</label>
+                    <label class="form-label">학교에서의 도보 거리</label>
                     <div class="chip-group">
-                        <input type="radio" name="distance" id="dist1" value="5" class="chip-input" checked><label for="dist1" class="chip-label">5분</label>
-                        <input type="radio" name="distance" id="dist2" value="10" class="chip-input"><label for="dist2" class="chip-label">10분</label>
-                        <input type="radio" name="distance" id="dist3" value="20" class="chip-input"><label for="dist3" class="chip-label">20분</label>
+                        <input type="radio" name="distance" id="dist1" value="5" class="chip-input" checked>
+                        <label for="dist1" class="chip-label">5분 이내</label>
+
+                        <input type="radio" name="distance" id="dist2" value="7" class="chip-input">
+                        <label for="dist2" class="chip-label">7분 이내</label>
+
+                        <input type="radio" name="distance" id="dist3" value="10" class="chip-input">
+                        <label for="dist3" class="chip-label">10분 이내</label>
+                        
+                        <input type="radio" name="distance" id="dist4" value="20" class="chip-input">
+                        <label for="dist4" class="chip-label">20분 이내</label>
                     </div>
                 </div>
 
-                <button type="submit" class="btn-submit">서버에 요청하기</button>
+                <div class="form-group">
+                    <label for="notes" class="form-label">기타 요구사항 (선택)</label>
+                    <textarea id="notes" class="input-field" placeholder="예: 매운 음식 선호, 조용했으면 좋겠음"></textarea>
+                </div>
+
+
+                <button type="submit" class="btn-submit">AI 추천 맛집 찾기</button>
             </form>
+
             <div id="statusMessage"></div>
             <div id="resultsContainer"></div>
         </div>
     </div>
 
     <script>
-        function updateHunger(val) { document.getElementById('hungerText').innerText = val; }
-        function showStatus(msg, isError = false) {
-            const el = document.getElementById('statusMessage');
-            el.innerText = msg; el.style.color = isError ? '#d32f2f' : '#2e7d32';
+        // [핵심 요구사항 1] API 서버 주소 상수
+        // 나중에 FastAPI 서버 URL로 변경해야 합니다.
+        const SERVER_URL = 'http://localhost:8000'; 
+        // Replit 등 원격 서버를 사용하는 경우 'https://[당신의-replit-주소].repl.co' 등으로 변경해야 합니다.
+
+        // UI 함수
+        function updateHunger(val) {
+            document.getElementById('hungerText').innerText = val;
         }
 
-        // [중요] 서버 통신용 함수 (로컬 데이터 없음)
+        function showStatus(msg, isError = false) {
+            const el = document.getElementById('statusMessage');
+            el.innerText = msg;
+            el.style.color = isError ? '#d32f2f' : '#2e7d32'; 
+        }
+
+        // 테스트를 위한 더미 데이터 (서버 응답을 가정)
+        const DUMMY_RESPONSE = [
+            { name: "광운분식", menu: "떡볶이, 김밥", budget: 7000, distance: 5, rating: 4.3, mapQuery: "광운대 광운분식" },
+            { name: "학식당", menu: "오늘의 메뉴", budget: 5500, distance: 2, rating: 3.8, mapQuery: "광운대 학식당" }
+        ];
+
+
+        /**
+         * [핵심 요구사항 2] API 통신 로직 함수
+         * 버튼을 누르면 이 함수가 실행되며, 서버로 데이터 전송을 시도합니다.
+         */
         async function register() {
             const submitButton = document.querySelector('.btn-submit');
             const resultsContainer = document.getElementById('resultsContainer');
             
-            // 값 가져오기
-            const hungerVal = document.getElementById('hunger').value;
+            // 1. 입력값 수집 및 객체 생성
             const priceVal = document.getElementById('price').value;
             const mealTimeVal = document.querySelector('input[name="mealTime"]:checked')?.value;
             const cuisineVal = document.querySelector('input[name="cuisine"]:checked')?.value;
             const distanceVal = document.querySelector('input[name="distance"]:checked')?.value;
+            const hungerVal = document.getElementById('hunger').value;
+            const notesVal = document.getElementById('notes').value;
+
+            // ⚠️ 필수 입력값 유효성 검사 (예산)
+            if (!priceVal || parseInt(priceVal) <= 0) {
+                showStatus("⚠️ 예산을 정확히 입력해주세요.", true);
+                document.getElementById('price').focus();
+                return;
+            }
 
             const requestData = {
                 hunger: parseInt(hungerVal),
                 mealTime: mealTimeVal,
                 cuisine: cuisineVal,
                 price: parseInt(priceVal),
-                distance: distanceVal
+                distance: parseInt(distanceVal),
+                notes: notesVal
             };
 
-            resultsContainer.innerHTML = '';
+            // 2. UI 초기화 및 로딩 시작
+            resultsContainer.innerHTML = ''; 
             submitButton.disabled = true;
-            showStatus("🚀 서버(FastAPI)로 데이터를 보내는 중...");
+            showStatus("🚀 AI 서버(FastAPI)로 요청을 보내는 중...");
 
             try {
-                // Replit URL 주의 (로컬 테스트용)
-                const response = await fetch('http://localhost:8000/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestData),
+                // [CORE LOGIC] 서버 통신 (method: 'POST')
+                const response = await fetch(`${SERVER_URL}/recommend`, {
+                    method: 'POST', // 통신 방식
+                    headers: { 
+                        'Content-Type': 'application/json' 
+                    },
+                    // JSON 데이터 전송
+                    body: JSON.stringify(requestData), 
                 });
 
+                // 서버 응답 처리
                 const result = await response.json();
 
-                if (response.ok && result.status === 'success') {
-                    showStatus(`✅ 통신 성공!`);
-                    resultsContainer.innerHTML = `
-                        <div class="result-card">
-                            <h3>응답 성공</h3>
-                            <p>서버 메시지: ${result.message}</p>
-                            <pre style="background:#eee; padding:10px;">${JSON.stringify(result.received_data, null, 2)}</pre>
-                        </div>
-                    `;
+                if (response.ok) {
+                    // 서버 응답이 성공 (200 OK)일 경우
+                    handleServerResponse(result);
                 } else {
-                    throw new Error("서버 오류");
+                    // 4xx, 5xx 에러인 경우
+                    throw new Error(`서버 오류: ${result.detail || '알 수 없는 오류'}`);
                 }
             } catch (error) {
+                // Fetch 자체 실패 (SERVER_URL 미작동, CORS 문제 등)
+                showStatus(`❌ API 통신 실패 (URL 확인 필요): ${error.message}`, true);
+                
+                // 통신 실패 시 더미 데이터로 대체 표시 (선택 사항, 테스트용)
+                // handleServerResponse({ recommendations: DUMMY_RESPONSE, message: "더미 데이터 표시 (통신 실패)" });
+            } finally {
+                // 4. 버튼 활성화
+                submitButton.disabled = false;
+            }
+        }
+
+        /**
+         * 서버 응답을 처리하고 결과를 화면에 표시하는 함수
+         */
+        function handleServerResponse(data) {
+            const resultsContainer = document.getElementById('resultsContainer');
+            const recommendations = data.recommendations || []; // 서버 응답에서 추천 목록을 가져옴
+
+            if (recommendations.length > 0) {
+                showStatus(`✅ ${recommendations.length}개의 맛집을 찾았습니다!`);
+                
+                recommendations.forEach(r => {
+                    const card = document.createElement('div');
+                    card.className = 'result-card';
+                    
+                    // 지도 검색 URL 생성
+                    const query = r.mapQuery || `광운대 ${r.name}`; // 서버에서 검색 쿼리를 줄 수도 있음
+                    const naverMapUrl = `https://map.naver.com/v5/search/${encodeURIComponent(query)}`;
+                    const googleMapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+
+                    // toLocaleString()은 숫자 포맷팅을 위해 사용
+                    const budgetText = r.budget ? r.budget.toLocaleString() + '원' : '정보 없음';
+
+                    card.innerHTML = `
+                        <h3>${r.name} <span class="rating">★ ${r.rating || 'N/A'}</span></h3>
+                        <p>🍽️ 시그니처 메뉴: <strong>${r.menu || '정보 없음'}</strong></p>
+                        <p>💰 평균 예산: <strong>${budgetText}</strong></p>
+                        <p>🚶 도보 거리: <strong>약 ${r.distance || 'N/A'}분</strong></p>
+                        <div class="map-buttons">
+                            <a href="${naverMapUrl}" target="_blank" class="map-btn naver">네이버 지도</a>
+                            <a href="${googleMapUrl}" target="_blank" class="map-btn google">구글 지도</a>
+                        </div>
+                    `;
+                    resultsContainer.appendChild(card);
+                });
+
+                // 결과 영역으로 스크롤
+                resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            } else {
+                showStatus("조건에 맞는 맛집이 없습니다. 😢", true);
+                resultsContainer.innerHTML = `
+                    <div style="text-align:center; padding: 20px; color: var(--text-sub);">
+                        <p>선택하신 조건의 식당을 찾지 못했어요.</p>
+                        <p>예산을 조금 올리거나, 거리를 늘려보세요!</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
