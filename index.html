@@ -356,135 +356,111 @@
     </div>
 
     <script>
-        // 1. [DATA] 광운대학교 주변 실제 맛집 데이터베이스
-        const KW_RESTAURANTS = [
-            // 한식
-            { name: "밥은화 광운대점", cuisine: "한식", budget: 6000, distance: 3, rating: 4.5, menu: "직화제육, 쭈꾸미숙주" },
-            { name: "수유리우동집", cuisine: "한식", budget: 7000, distance: 4, rating: 4.2, menu: "우동, 김밥, 비빔국수" },
-            { name: "화로상회", cuisine: "한식", budget: 17500, distance: 7, rating: 4.6, menu: "무한리필 고기" },
-            { name: "더진국", cuisine: "한식", budget: 9000, distance: 5, rating: 4.1, menu: "수육국밥" },
-            { name: "봉구스밥버거", cuisine: "한식", budget: 5000, distance: 2, rating: 4.0, menu: "밥버거" },
-            
-            // 중식
-            { name: "차이남", cuisine: "중식", budget: 8000, distance: 5, rating: 4.3, menu: "짜장면, 탕수육" },
-            { name: "홍콩반점0410", cuisine: "중식", budget: 7500, distance: 6, rating: 4.1, menu: "짬뽕, 탕수육" },
-            { name: "마라탕 (탕화쿵푸)", cuisine: "중식", budget: 11000, distance: 5, rating: 4.4, menu: "마라탕, 꿔바로우" },
+    // 상태 메시지 출력 함수는 그대로 유지
+    function updateHunger(val) {
+        document.getElementById('hungerText').innerText = val;
+    }
 
-            // 양식
-            { name: "썬킥", cuisine: "양식", budget: 12000, distance: 5, rating: 4.7, menu: "오므라이스, 파스타" },
-            { name: "피자스쿨", cuisine: "양식", budget: 8000, distance: 8, rating: 4.2, menu: "고구마피자" },
-            { name: "맘스터치 광운대점", cuisine: "양식", budget: 7000, distance: 3, rating: 4.3, menu: "싸이버거" },
+    function showStatus(msg, isError = false) {
+        const el = document.getElementById('statusMessage');
+        el.innerText = msg;
+        el.style.color = isError ? '#d32f2f' : '#2e7d32'; 
+    }
 
-            // 일식
-            { name: "하이루", cuisine: "일식", budget: 9500, distance: 5, rating: 4.5, menu: "돈까스, 가츠동" },
-            { name: "스시준", cuisine: "일식", budget: 13000, distance: 7, rating: 4.6, menu: "초밥 세트" },
-            { name: "역전우동0410", cuisine: "일식", budget: 6500, distance: 4, rating: 4.1, menu: "우동, 덮밥" },
-            { name: "지지고", cuisine: "일식", budget: 5000, distance: 2, rating: 4.2, menu: "나이스라이스, 누들" },
+    /**
+     * 실제 추천 로직 함수 (Fetch를 사용하여 백엔드와 통신)
+     */
+    async function register() { 
+        const submitButton = document.querySelector('.btn-submit');
+        const resultsContainer = document.getElementById('resultsContainer');
 
-            // 디저트/카페
-            { name: "아마스빈", cuisine: "디저트", budget: 4000, distance: 3, rating: 4.5, menu: "버블티" },
-            { name: "이디야커피", cuisine: "디저트", budget: 3500, distance: 2, rating: 4.0, menu: "아메리카노" },
-            { name: "와플대학", cuisine: "디저트", budget: 4000, distance: 6, rating: 4.4, menu: "애플시나몬와플" },
-        ];
+        // 1. 입력값 수집
+        const hungerVal = document.getElementById('hunger').value;
+        const priceVal = document.getElementById('price').value;
+        const mealTimeVal = document.querySelector('input[name="mealTime"]:checked')?.value;
+        const cuisineVal = document.querySelector('input[name="cuisine"]:checked')?.value;
+        const distanceVal = document.querySelector('input[name="distance"]:checked')?.value;
 
-        // 배고픔 슬라이더 UI 업데이트
-        function updateHunger(val) {
-            document.getElementById('hungerText').innerText = val;
+        // 유효성 검사 (서버 전송 전 필수 값 확인)
+        if (!priceVal || parseInt(priceVal) <= 0 || !mealTimeVal || !cuisineVal || !distanceVal) {
+            showStatus("⚠️ 모든 선택 항목을 정확히 입력하거나 선택해주세요.", true);
+            return;
         }
 
-        // 상태 메시지 출력 함수
-        function showStatus(msg, isError = false) {
-            const el = document.getElementById('statusMessage');
-            el.innerText = msg;
-            el.style.color = isError ? '#d32f2f' : '#2e7d32'; 
-        }
+        // 서버로 전송할 데이터 객체 생성 (FastAPI Pydantic 모델과 일치)
+        const requestData = {
+            hunger: parseInt(hungerVal),
+            mealTime: mealTimeVal,
+            cuisine: cuisineVal,
+            price: parseInt(priceVal),
+            distance: distanceVal
+        };
 
-        /**
-         * 실제 추천 로직 함수 (Fetch 대신 로컬 필터링 사용)
-         */
-        function register() {
-            // 버튼 제어
-            const submitButton = document.querySelector('.btn-submit');
-            
-            // 1. 입력값 수집
-            const priceVal = document.getElementById('price').value;
-            const cuisineVal = document.querySelector('input[name="cuisine"]:checked')?.value;
-            const distanceVal = document.querySelector('input[name="distance"]:checked')?.value;
-            const hungerVal = document.getElementById('hunger').value; // 참고용
+        // UI 초기화 및 로딩 시작
+        resultsContainer.innerHTML = ''; 
+        submitButton.disabled = true;
+        showStatus("맛집 추천 서버에 요청 중...");
 
-            // 유효성 검사
-            if (!priceVal || parseInt(priceVal) <= 0) {
-                showStatus("⚠️ 예산을 정확히 입력해주세요.", true);
-                document.getElementById('price').focus();
-                return;
+        try {
+            // [CORE LOGIC] FastAPI 서버의 /register 엔드포인트로 POST 요청
+            // TODO: Replit 환경에서는 'http://localhost:8000' 대신, 
+            // Replit에서 부여한 백엔드 서버 URL로 변경해야 할 수 있습니다.
+            const response = await fetch('http://localhost:8000/register', { 
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData),
+            });
+
+            // 응답을 JSON으로 파싱
+            const result = await response.json();
+
+            // 3. 결과 렌더링 (통신 성공 시)
+            if (response.ok && result.status === 'success') {
+                showStatus(`✅ 서버 통신 성공! 응답 메시지: ${result.message}`);
+                
+                // 수신된 데이터를 사용자에게 보여줍니다.
+                resultsContainer.innerHTML = `
+                    <div class="result-card">
+                        <h3>✅ 서버 통신 검증 성공</h3>
+                        <p><strong>수신 응답:</strong> ${result.message}</p>
+                        <p><strong>서버가 받은 데이터:</strong></p>
+                        <pre style="white-space: pre-wrap; font-size: 0.85rem; color: #333; background: #f1f3f5; padding: 10px; border-radius: 6px;">${JSON.stringify(result.received_data, null, 2)}</pre>
+                        <p style="margin-top: 10px; color: var(--primary-color); font-weight: 500;">
+                            ➡️ FastAPI 콘솔 로그와 위 데이터가 일치하는지 확인하여 통신 검증을 완료하세요.
+                        </p>
+                    </div>
+                `;
+                // 결과 영역으로 스크롤
+                resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+            } else {
+                // HTTP 오류 상태 코드이거나 서버 응답 status가 'success'가 아닌 경우
+                throw new Error(result.message || '서버 응답 오류 (상태 코드가 200번대가 아님)');
             }
 
-            // UI 초기화
-            const resultsContainer = document.getElementById('resultsContainer');
-            resultsContainer.innerHTML = ''; 
-            submitButton.disabled = true;
-            showStatus("맛집 데이터를 검색중입니다...");
+        } catch (error) {
+            // 네트워크 오류 또는 서버 접속 실패 시
+            showStatus(`❌ 서버 통신 실패: ${error.message}`, true);
+            resultsContainer.innerHTML = `
+                <div style="text-align:center; padding: 20px; color: #d32f2f;">
+                    <p>통신에 실패했습니다. 다음을 확인해주세요:</p>
+                    <p>1. FastAPI 서버(main.py)가 **실행 중**인가요?</p>
+                    <p>2. `fetch` URL(http://localhost:8000/register)이 **정확**한가요?</p>
+                </div>
+            `;
 
-            // 2. 가상의 로딩 시간 (UX) 후 필터링 실행
-            setTimeout(() => {
-                const userBudget = parseInt(priceVal);
-                const userDist = parseInt(distanceVal);
-
-                // [CORE LOGIC] 데이터 필터링
-                // 조건: 선택한 종류 일치 AND (가격 <= 예산 OR 오차범위 1000원) AND 거리 <= 입력거리
-                const recommendations = KW_RESTAURANTS.filter(r => {
-                    return r.cuisine === cuisineVal &&
-                           r.budget <= (userBudget + 1000) && // 예산보다 1000원 비싼 것까지 허용
-                           r.distance <= userDist;
-                });
-
-                // 추천순 정렬 (평점 높은 순)
-                recommendations.sort((a, b) => b.rating - a.rating);
-
-                // 3. 결과 렌더링
-                if (recommendations.length > 0) {
-                    showStatus(`✅ ${recommendations.length}개의 맛집을 찾았습니다!`);
-                    
-                    recommendations.forEach(r => {
-                        const card = document.createElement('div');
-                        card.className = 'result-card';
-                        
-                        // 지도 검색 URL 생성
-                        const query = `광운대 ${r.name}`;
-                        const naverMapUrl = `https://map.naver.com/v5/search/${encodeURIComponent(query)}`;
-                        const googleMapUrl = `https://www.google.com/maps/search/${encodeURIComponent(query)}`;
-
-                        card.innerHTML = `
-                            <h3>${r.name} <span class="rating">★ ${r.rating}</span></h3>
-                            <p>💰 평균 예산: <strong>${r.budget.toLocaleString()}원</strong></p>
-                            <p>🚶 도보 거리: <strong>약 ${r.distance}분</strong></p>
-                            <p>🍽️ 대표 메뉴: ${r.menu}</p>
-                            <div class="map-buttons">
-                                <a href="${naverMapUrl}" target="_blank" class="map-btn naver">네이버 지도</a>
-                                <a href="${googleMapUrl}" target="_blank" class="map-btn google">구글 지도</a>
-                            </div>
-                        `;
-                        resultsContainer.appendChild(card);
-                    });
-
-                    // 결과 영역으로 스크롤
-                    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-                } else {
-                    showStatus("조건에 맞는 맛집이 없습니다. 😢", true);
-                    resultsContainer.innerHTML = `
-                        <div style="text-align:center; padding: 20px; color: var(--text-sub);">
-                            <p>선택하신 조건의 식당을 찾지 못했어요.</p>
-                            <p>예산을 조금 올리거나, 거리를 늘려보세요!</p>
-                        </div>
-                    `;
-                }
-
-                // 버튼 활성화
-                submitButton.disabled = false;
-
-            }, 600); // 0.6초 지연 효과
+        } finally {
+            // 버튼 활성화
+            submitButton.disabled = false;
         }
-    </script>
-</body>
-</html>
+    }
+
+    // 기존 데이터베이스는 서버 연동 검증을 위해 주석 처리하거나 제거합니다.
+    /*
+    const KW_RESTAURANTS = [
+        // ... (맛집 데이터)
+    ];
+    */
+</script>
